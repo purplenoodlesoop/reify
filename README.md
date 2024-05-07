@@ -1,55 +1,24 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Reify
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages). 
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages). 
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Reify is a microframework designed for building static sites without the use of templates. It leverages an embedded domain-specific language (eDSL) to describe pages, allowing for a flexible and customizable approach to site creation. Content is managed using Markdown files with custom, arbitrary frontmatter, enabling easy content organization.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **Microframework for Static Sites**: Reify provides a lightweight solution for creating static sites.
+- **eDSL for Page Description**: The use of an embedded domain-specific language allows for detailed and specific page descriptions.
+- **Markdown Content**: Content is stored in Markdown files, with the flexibility of custom frontmatter for enhanced content management.
+- **Nix Build System**: Utilizes Nix as a build system and package manager, ensuring efficient and reproducible builds.
+- **Live and Hot Reload**: Incorporates Node live-server for live and hot reload functionality, making development and testing seamless.
 
-## Getting started
+## Getting Started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+To use the project, follow these steps:
 
-## Usage
+1. Create a new dart project.
+2. Add the Reify package in your `pubspec.yaml` file.
+3. Optionally, start the development environment using `nix develop`.
+4. Start the watch mode using `develop.nix` to enable live and hot reload features.
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
+---
 
-```dart
-const like = 'sample';
-```
-
-## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+For detailed instructions on installation and usage, please refer to the repository files.
