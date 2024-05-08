@@ -39,5 +39,9 @@
           live-server ./site/output & wait)
         '';
       };
+      templates.default = {
+        description = "Default template for a new project";
+        path = ./template;
+      };
     };
 }
