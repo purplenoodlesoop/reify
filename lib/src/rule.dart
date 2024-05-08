@@ -160,6 +160,6 @@ Future<void> evalRuleSet(
       .concurrentAsyncExpand(
         (rule) => rule.run((logger: logger, prefix: prefix)),
       )
-      .concurrentAsyncMap(writeOutput)
+      .asyncMap(writeOutput)
       .drain();
 }
