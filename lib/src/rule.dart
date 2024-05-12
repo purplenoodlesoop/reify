@@ -3,9 +3,8 @@ import 'dart:io';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:mark/mark.dart';
+import 'package:path/path.dart' as p;
 import 'package:pure/pure.dart';
-import 'package:reify/src/html/core.dart';
-import 'package:reify/src/markdown.dart';
 import 'package:reify/src/string.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -16,36 +15,68 @@ typedef Item<T> = ({
 
 typedef Items<T> = Iterable<Item<T>>;
 
-typedef ItemsStream<T> = Stream<Item<T>>;
-
 typedef RawItem = Item<String>;
 
-typedef OutputDescription<I, O> = Items<O> Function(Iterable<I> input);
+sealed class Action<T> {}
+
+typedef ItemsStream<T> = Stream<Item<T>>;
+
+typedef ActionsStream<T> = Stream<Action<T>>;
+
+final class WriteAction<T> implements Action<T> {
+  final Item<T> item;
+
+  WriteAction(this.item);
+}
+
+final class CopyAction<T> implements Action<T> {
+  final File file;
+
+  CopyAction(this.file);
+}
 
 typedef RuleDependencies = ({
   Logger logger,
-  String prefix,
+  String root,
 });
 
-typedef RuleRunner<O> = ItemsStream<O> Function(RuleDependencies dependencies);
+typedef RuleRunner<O> = ActionsStream<O> Function(
+  RuleDependencies dependencies,
+);
 
-extension type Rule<O>(RuleRunner<O> run) {}
+const input = 'input';
 
-typedef WriteRule = Rule<String>;
+const output = 'output';
 
-typedef Rules<T> = Set<Rule<T>>;
+extension type Rule<A>(RuleRunner<A> run) {}
 
-typedef ItemParser<I> = I Function(RawItem source);
+/// Copies files from the input directory to the output directory.
+Rule<A> copy<A>(String glob) => Rule(
+      (dependencies) => p
+          .join(dependencies.root, input, glob)
+          .pipe(Glob.new)
+          .list()
+          .whereType<File>()
+          .map(CopyAction.new),
+    );
 
-typedef RuleDescription<I, O> = ({
-  String? input,
-  ItemParser<I> parse,
-  OutputDescription<I, O> output,
-});
+Rule<A> create<A>(Item<A> Function() body) => Rule((dependencies) async* {
+      try {
+        yield WriteAction(body());
+      } on Object catch (error, s) {
+        dependencies.logger.warning(
+          'Failed to create item',
+          meta: (error: error),
+          stackTrace: s,
+        );
+      }
+    });
 
-Rule<O> rule<I, O>(RuleDescription<I, O> description) =>
+/// Writes the output of the rule to the output directory from the root
+/// directory.
+Rule<O> write<I, O>(RawRuleDescription<I, O> description) =>
     Rule((dependencies) async* {
-      final (:logger, :prefix) = dependencies;
+      final (:logger, :root) = dependencies;
 
       Iterable<I> safeParse(RawItem input) sync* {
         logger.info('Parsing..', meta: (path: input.path));
@@ -66,8 +97,7 @@ Rule<O> rule<I, O>(RuleDescription<I, O> description) =>
       }
 
       Future<RawItem> readFile(File file) async {
-        final path =
-            file.path.replaceFirst('$prefix/', '').replaceFirst('./', '');
+        final path = p.normalize(file.path);
         logger.info('Reading..', meta: (path: path));
         final contents = await file.readAsString();
 
@@ -78,7 +108,7 @@ Rule<O> rule<I, O>(RuleDescription<I, O> description) =>
       }
 
       final sources = await description.input
-          ?.pipe((input) => prefix / input)
+          ?.pipe((input) => root / input)
           .pipe(Glob.new)
           .list()
           .whereType<File>()
@@ -88,58 +118,32 @@ Rule<O> rule<I, O>(RuleDescription<I, O> description) =>
       yield* (sources ?? [])
           .expand(safeParse)
           .pipe(description.output)
-          .pipe(Stream.fromIterable);
+          .pipe(Stream.fromIterable)
+          .map(WriteAction.new);
     });
 
-Rules<B> transform<A, B>({
-  required B Function(A input) using,
-  required Rules<A> rules,
-}) =>
-    rules
-        .map<Rule<B>>(
-          (e) => Rule(
-            (dependencies) => e.run(dependencies).map(
-                  (e) => (
-                    path: e.path,
-                    data: using(e.data),
-                  ),
-                ),
-          ),
-        )
-        .toSet();
+typedef Parser<A extends Object?, B extends Object?> = B Function(A raw);
 
-WriteRule copy(String input) => rule(
-      (
-        input: input,
-        parse: id,
-        output: id,
-      ),
-    );
+typedef OutputDescription<I, O> = Items<O> Function(Iterable<I> input);
 
-WriteRule create(RawItem file) => rule(
-      (
-        input: null,
-        parse: ().constant,
-        output: [file].constant,
-      ),
-    );
+typedef WriteRuleDescription< //
+        Input extends String?,
+        Raw extends Object?,
+        Parsed extends Object?,
+        Model extends Object?,
+        Output extends Object?>
+    = ({
+  Input input,
+  Parser<Raw, Parsed> parse,
+  OutputDescription<Model, Output> output,
+});
 
-Rule<Html> markdown<T>({
-  required String input,
-  required MetaParser<T> parse,
-  required OutputDescription<Markdown<T>, Html> output,
-}) =>
-    rule(
-      (
-        input: input,
-        parse: (source) => parseMarkdown(parse, source),
-        output: output,
-      ),
-    );
+typedef RawRuleDescription<I, O>
+    = WriteRuleDescription<String?, RawItem, I, I, O>;
 
 typedef RuleSet = ({
   String root,
-  Rules<String> rules,
+  Rule<String> rule,
 });
 
 Future<void> evalRuleSet(
@@ -147,19 +151,31 @@ Future<void> evalRuleSet(
   RuleSet ruleSet,
 ) {
   final root = ruleSet.root;
-  final prefix = root / 'input';
 
-  Future<void> writeOutput(RawItem output) async {
-    logger.info('Writing..', meta: (path: output.path));
-    final outputPath = root / 'output' / output.path;
-    final file = await File(outputPath).create(recursive: true);
-    await file.writeAsString(output.data);
+  Future<void> writeOutput(Action<String> output) async {
+    switch (output) {
+      case WriteAction(:final item):
+        final path = [null, 'input', 'output']
+            .map((e) => e == null ? <String>[] : [e])
+            .map((e) => [root, ...e, ''])
+            .map(p.joinAll)
+            .fold(item.path, (acc, prefix) => acc.replaceFirst(prefix, ''));
+        final outputPath = p.normalize(p.join(root, 'output', path));
+
+        logger.info('Writing..', meta: (path: outputPath));
+        final file = await File(outputPath).create(recursive: true);
+        await file.writeAsString(item.data);
+      case CopyAction(:final file):
+        final prefix = p.join(root, 'input');
+        final path = file.path.replaceFirst(prefix, '');
+        final outputPath = p.normalize(p.join(root, 'output', path));
+        logger.info('Copying..', meta: (path: outputPath));
+        await file.copy(outputPath);
+    }
   }
 
-  return Stream.fromIterable(ruleSet.rules)
-      .concurrentAsyncExpand(
-        (rule) => rule.run((logger: logger, prefix: prefix)),
-      )
+  return ruleSet.rule
+      .run((logger: logger, root: root))
       .asyncMap(writeOutput)
       .drain();
 }

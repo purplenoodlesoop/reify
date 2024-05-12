@@ -82,7 +82,7 @@ typedef Context = ({
 
 Future<void> generate(
   List<String> args,
-  Rules<String> Function(Context context) rules,
+  Rule<String> Function(Context context) rule,
 ) async {
   final (:root, :watch, :paths, :mode) = _parseArgs(args);
   final context = (root: root, mode: mode);
@@ -91,15 +91,20 @@ Future<void> generate(
       _PrettyEphemeralProcessor(),
     ],
   );
+  final out = Directory(root / 'output');
   Future<void> writeOutput() async {
     try {
       final sw = Stopwatch()..start();
       logger.info('Evaluating rules');
+      if (out.existsSync()) {
+        logger.info('Clearing output directory');
+        await Directory(root / 'output').delete(recursive: true);
+      }
       await evalRuleSet(
         logger,
         (
           root: root,
-          rules: rules(context),
+          rule: rule(context),
         ),
       );
       logger.info(
@@ -115,11 +120,6 @@ Future<void> generate(
     }
   }
 
-  final out = Directory(root / 'output');
-  if (out.existsSync()) {
-    logger.info('Clearing output directory');
-    await Directory(root / 'output').delete(recursive: true);
-  }
   await writeOutput();
   if (watch) {
     await watchForHotReload(

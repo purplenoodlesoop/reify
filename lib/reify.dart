@@ -8,4 +8,5 @@ export 'src/html/elements.dart';
 export 'src/html/parser.dart';
 export 'src/markdown.dart';
 export 'src/rule.dart';
+export 'src/rule_combinators.dart';
 export 'src/string.dart';

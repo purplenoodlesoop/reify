@@ -55,7 +55,9 @@ final _markdownParser = md.Document(
   ],
 );
 
-typedef MetaParser<T> = T Function(Map<String, Object?> yaml);
+typedef FrontMatter = Map<String, Object?>;
+
+typedef MetaParser<T> = T Function(FrontMatter frontMatter);
 
 Markdown<T> parseMarkdown<T>(
   MetaParser<T> parseMeta,

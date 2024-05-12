@@ -15,13 +15,22 @@
     let
       core = core-flake.lib;
       name = "reify";
-      systemSpecific = { pkgs, toolchains }: {
-        devEnv = core.toolchain.devEnv toolchains.dart;
+      systemSpecific = { pkgs, toolchains }: rec {
+        default = core.toolchain.devEnv toolchains.dart;
+        apps.example = with pkgs; writeShellApplication {
+          name = "example";
+          runtimeInputs = default;
+          text = ''
+            dart example/bin/main.dart \
+              --root=./example/site \
+              --mode=local
+          '';
+        };
       };
     in
     core.mkFlake {
       inherit name systemSpecific;
-      lib.build.watch = { pkgs, bin }: with pkgs; writeShellApplication {
+      lib.build. watch = { pkgs, bin }: with pkgs; writeShellApplication {
         name = "watch";
         runtimeInputs = [
           dart
