@@ -108,7 +108,7 @@ Rule<O> write<I, O>(RawRuleDescription<I, O> description) =>
       }
 
       final sources = await description.input
-          ?.pipe((input) => root / input)
+          ?.pipe((input) => root / 'input' / input)
           .pipe(Glob.new)
           .list()
           .whereType<File>()
@@ -155,9 +155,8 @@ Future<void> evalRuleSet(
   Future<void> writeOutput(Action<String> output) async {
     switch (output) {
       case WriteAction(:final item):
-        final path = [null, 'input', 'output']
-            .map((e) => e == null ? <String>[] : [e])
-            .map((e) => [root, ...e, ''])
+        final path = const ['input', 'output']
+            .map((e) => [root, e, ''])
             .map(p.joinAll)
             .fold(item.path, (acc, prefix) => acc.replaceFirst(prefix, ''));
         final outputPath = p.normalize(p.join(root, 'output', path));

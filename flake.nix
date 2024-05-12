@@ -16,10 +16,10 @@
       core = core-flake.lib;
       name = "reify";
       systemSpecific = { pkgs, toolchains }: rec {
-        default = core.toolchain.devEnv toolchains.dart;
+        shells.default = core.toolchain.devEnv toolchains.dart;
         apps.example = with pkgs; writeShellApplication {
           name = "example";
-          runtimeInputs = default;
+          runtimeInputs = shells.default;
           text = ''
             dart example/bin/main.dart \
               --root=./example/site \
