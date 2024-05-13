@@ -57,6 +57,9 @@ Rule<A> copy<A>(String glob) => Rule(
           .pipe(Glob.new)
           .list()
           .whereType<File>()
+          .map((file) => file.path)
+          .map(p.normalize)
+          .map(File.new)
           .map(CopyAction.new),
     );
 
@@ -166,9 +169,10 @@ Future<void> evalRuleSet(
         await file.writeAsString(item.data);
       case CopyAction(:final file):
         final prefix = p.join(root, 'input');
-        final path = file.path.replaceFirst(prefix, '');
+        final path = file.path.replaceFirst(p.normalize(prefix) / '', '');
         final outputPath = p.normalize(p.join(root, 'output', path));
         logger.info('Copying..', meta: (path: outputPath));
+        await Directory(p.dirname(outputPath)).create(recursive: true);
         await file.copy(outputPath);
     }
   }

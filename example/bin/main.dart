@@ -1,18 +1,15 @@
 import 'package:path/path.dart';
 import 'package:reify/reify.dart';
 
-String htmlFile(String path) =>
-    setExtension(withoutExtension(basename(path)), '.html');
-
 void main(List<String> arguments) => generate(
       arguments,
       (context) => concurrent({
-        copy('**.txt'),
+        copy('static/**.txt'),
         write<RawItem, String>((
           input: 'md/**.md',
           parse: (raw) => raw,
           output: (data) => data.map((e) => (
-                path: htmlFile(e.path),
+                path: setExtension(basenameWithoutExtension(e.path), '.html'),
                 data: e.data * 2,
               )),
         )),
