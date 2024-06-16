@@ -113,7 +113,7 @@ Tag _head(PageData data) {
   ]);
 }
 
-Html page(
+Html basePage(
   PageData data, {
   Html children = const [],
   Attributes attrs = const {},
