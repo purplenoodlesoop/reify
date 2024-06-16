@@ -1,5 +1,3 @@
-import 'package:reify/src/html/core.dart';
-import 'package:reify/src/markdown.dart';
 import 'package:reify/src/rule.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -45,15 +43,4 @@ Rule<A> sequential<A>(Rules<A> rules) => _order(
 Rule<A> concurrent<A>(Rules<A> rules) => _order(
       rules,
       (stream, f) => stream.concurrentAsyncExpand(f),
-    );
-
-typedef MarkdownRuleDescription<T>
-    = WriteRuleDescription<String, FrontMatter, T, Markdown<T>, Html>;
-
-Rule<Html> markdown<T>(MarkdownRuleDescription<T> description) => write(
-      (
-        input: description.input,
-        parse: (source) => parseMarkdown(description.parse, source),
-        output: description.output,
-      ),
     );

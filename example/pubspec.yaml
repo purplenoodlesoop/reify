@@ -11,7 +11,7 @@ environment:
 # Add regular dependencies here.
 dependencies:
   reify:
-    path: ../
+    path: ../packages/reify
   path: ^1.9.0
 
 dev_dependencies:

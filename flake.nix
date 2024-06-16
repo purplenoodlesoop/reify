@@ -15,7 +15,7 @@
     let
       core = core-flake.lib;
       name = "reify";
-      systemSpecific = { pkgs, toolchains }: rec {
+      systemSpecific = { pkgs, toolchains, system }: rec {
         shells.default = core.toolchain.devEnv toolchains.dart;
         apps.example = with pkgs; writeShellApplication {
           name = "example";
@@ -30,7 +30,7 @@
     in
     core.mkFlake {
       inherit name systemSpecific;
-      lib.build. watch = { pkgs, bin }: with pkgs; writeShellApplication {
+      lib.build.watch = { pkgs, bin }: with pkgs; writeShellApplication {
         name = "watch";
         runtimeInputs = [
           dart

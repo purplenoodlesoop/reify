@@ -19,8 +19,8 @@
     }:
     let
       core = core-flake.lib;
-      name = throw "Undefined name";
-      systemSpecific = { pkgs, toolchains }:
+      name = throw "Undefined flake name";
+      systemSpecific = { pkgs, toolchains, system }:
         let
           toolchain = toolchains.dart;
           dartDevEnv = core.toolchain.devEnv toolchain;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:glob/glob.dart';
@@ -63,9 +64,12 @@ Rule<A> copy<A>(String glob) => Rule(
           .map(CopyAction.new),
     );
 
-Rule<A> create<A>(Item<A> Function() body) => Rule((dependencies) async* {
+Rule<A> create<A>(
+  FutureOr<Item<A>> Function(RuleDependencies dependencies) body,
+) =>
+    Rule((dependencies) async* {
       try {
-        yield WriteAction(body());
+        yield WriteAction(await body(dependencies));
       } on Object catch (error, s) {
         dependencies.logger.warning(
           'Failed to create item',

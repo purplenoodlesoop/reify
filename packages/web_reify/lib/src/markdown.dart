@@ -1,11 +1,7 @@
 import 'package:markdown/markdown.dart' as md;
-// ignore: implementation_imports
 import 'package:markdown/src/charcode.dart';
-import 'package:pure/pure.dart';
-import 'package:reify/src/html/elements.dart';
-import 'package:reify/src/html/parser.dart';
-import 'package:reify/src/rule.dart';
-import 'package:reify/src/string.dart';
+import 'package:web_reify/src/html.dart';
+import 'package:reify/reify.dart';
 import 'package:yaml/yaml.dart';
 
 typedef ContentNodes = List<md.Node>;
@@ -29,9 +25,12 @@ class _WikiReference extends md.InlineSyntax {
   bool onMatch(md.InlineParser parser, Match match) {
     final text = match.group(1)!;
 
-    a(text, href: htmlFileSlug(text))
-        .pipe(htmlToMarkdownHtmlNode)
-        .pipe(parser.addNode);
+    parser.addNode(
+      htmlToMarkdownHtmlNode(textLink(
+        text: text,
+        href: htmlFileSlug(text),
+      )),
+    );
 
     return true;
   }
@@ -72,13 +71,12 @@ Markdown<T> parseMarkdown<T>(
   final closingDelimiter = trimmed.indexOf('\n$delimiter');
   final hasFrontMatter = trimmed.startsWith(delimiter);
   final frontMatterMap = hasFrontMatter
-      ? trimmed
-          .substring(firstDelimiter, closingDelimiter)
-          .pipe((yaml) => (loadYaml(yaml) as YamlMap).cast<String, Object?>())
+      ? (loadYaml(trimmed.substring(firstDelimiter, closingDelimiter))
+              as YamlMap)
+          .cast<String, Object?>()
       : null;
-  final markdown = trimmed
-      .substring(hasFrontMatter ? firstDelimiter + closingDelimiter + 1 : 0)
-      .pipe(_markdownParser.parse);
+  final markdown = _markdownParser.parse(trimmed
+      .substring(hasFrontMatter ? firstDelimiter + closingDelimiter + 1 : 0));
   final name = path.split('/').last.split('.').first;
 
   return (
@@ -89,3 +87,14 @@ Markdown<T> parseMarkdown<T>(
     ),
   );
 }
+
+typedef MarkdownRuleDescription<T>
+    = WriteRuleDescription<String, FrontMatter, T, Markdown<T>, Html>;
+
+Rule<Html> markdown<T>(MarkdownRuleDescription<T> description) => write(
+      (
+        input: description.input,
+        parse: (source) => parseMarkdown(description.parse, source),
+        output: description.output,
+      ),
+    );
