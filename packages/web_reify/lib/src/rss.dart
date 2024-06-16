@@ -39,7 +39,7 @@ Tag _item(Author author, RssItem item) {
 
 typedef RssData = ({
   Author author,
-  List<RssItem> items,
+  Iterable<RssItem> items,
 });
 
 Item<Html> rss(RssData data) {
