@@ -13,7 +13,7 @@ import 'package:web_reify/src/xml.dart';
 
 typedef SitemapInfo = ({
   String fullSite,
-  Map<String, int> priorities,
+  Map<String, double> priorities,
   String changefreq,
 });
 
