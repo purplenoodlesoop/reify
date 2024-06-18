@@ -115,7 +115,7 @@ Future<void> generate(
       logger.error(
         'Failed to process rule set',
         stackTrace: s,
-        meta: (error: e),
+        meta: (error: e, stackTrace: s),
       );
     }
   }
