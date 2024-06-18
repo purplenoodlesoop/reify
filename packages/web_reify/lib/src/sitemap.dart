@@ -30,7 +30,10 @@ HtmlNode _url(SitemapInfo info, SitemapPage page) {
       .replaceFirst('.html', '')
       .pipe((path) => path == 'index' ? '' : path);
   final priority = info.priorities.entries
-      .firstWhere((priority) => path.startsWith(priority.key))
+      .firstWhere(
+        (priority) => path.startsWith(priority.key),
+        orElse: () => MapEntry('', 0.5),
+      )
       .value
       .toString();
 
