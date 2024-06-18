@@ -9,10 +9,10 @@ typedef RobotsData = ({
 Rule<String> createRobotsTxt(
   RobotsData data,
 ) =>
-    create((_) {
+    create((_) async* {
       final values = {'Sitemap': data.fullSite / sitemap, ...data.entries};
 
-      return (
+      yield (
         path: 'robots.txt',
         data: values.entries.map((e) => '${e.key}: ${e.value}').join('\n'),
       );

@@ -42,7 +42,7 @@ HtmlNode _url(SitemapInfo info, SitemapPage page) {
   ]);
 }
 
-Rule<Html> writeSitemap(SitemapInfo info) => create((dependencies) async {
+Rule<Html> writeSitemap(SitemapInfo info) => create((dependencies) async* {
       final prefix = dependencies.root / 'output';
       final pages = await Glob(prefix / '**.html')
           .list()
@@ -53,7 +53,7 @@ Rule<Html> writeSitemap(SitemapInfo info) => create((dependencies) async {
               ))
           .toList();
 
-      return (
+      yield (
         path: sitemap,
         data: xml([
           'urlset'(
