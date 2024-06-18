@@ -65,11 +65,11 @@ Rule<A> copy<A>(String glob) => Rule(
     );
 
 Rule<A> create<A>(
-  FutureOr<Item<A>> Function(RuleDependencies dependencies) body,
+  Stream<Item<A>> Function(RuleDependencies dependencies) body,
 ) =>
     Rule((dependencies) async* {
       try {
-        yield WriteAction(await body(dependencies));
+        yield* body(dependencies).map(WriteAction.new);
       } on Object catch (error, s) {
         dependencies.logger.warning(
           'Failed to create item',

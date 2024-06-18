@@ -13,9 +13,11 @@ void main(List<String> arguments) => generate(
                 data: e.data * 2,
               )),
         )),
-        create(() => (
-              path: 'timestamp.json',
-              data: '"${DateTime.now().toIso8601String()}"',
-            ))
+        create((_) async* {
+          yield (
+            path: 'timestamp.json',
+            data: '"${DateTime.now().toIso8601String()}"',
+          );
+        })
       }),
     );
