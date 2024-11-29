@@ -1,7 +1,8 @@
+import 'package:brackets/brackets.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:markdown/src/charcode.dart';
-import 'package:web_reify/src/html.dart';
 import 'package:reify/reify.dart';
+import 'package:web_reify/src/html.dart';
 import 'package:yaml/yaml.dart';
 
 typedef ContentNodes = List<md.Node>;
@@ -89,9 +90,9 @@ Markdown<T> parseMarkdown<T>(
 }
 
 typedef MarkdownRuleDescription<T>
-    = WriteRuleDescription<String, FrontMatter, T, Markdown<T>, Html>;
+    = WriteRuleDescription<String, FrontMatter, T, Markdown<T>, Markup>;
 
-Rule<Html> markdown<T>(MarkdownRuleDescription<T> description) => write(
+Rule<Markup> markdown<T>(MarkdownRuleDescription<T> description) => write(
       (
         input: description.input,
         parse: (source) => parseMarkdown(description.parse, source),

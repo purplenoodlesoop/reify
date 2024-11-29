@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:brackets/brackets.dart';
 import 'package:glob/glob.dart';
 import 'package:glob/list_local_fs.dart';
 import 'package:intl/intl.dart';
@@ -7,7 +8,6 @@ import 'package:path/path.dart' as p;
 import 'package:pure/pure.dart';
 import 'package:reify/reify.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:web_reify/src/html.dart';
 import 'package:web_reify/src/shared.dart';
 import 'package:web_reify/src/xml.dart';
 
@@ -24,7 +24,7 @@ typedef SitemapPage = ({
 
 final formatter = DateFormat('yyyy-MM-dd');
 
-HtmlNode _url(SitemapInfo info, SitemapPage page) {
+MarkupNode _url(SitemapInfo info, SitemapPage page) {
   final path = page.path;
   final loc = path
       .replaceFirst('.html', '')
@@ -45,7 +45,7 @@ HtmlNode _url(SitemapInfo info, SitemapPage page) {
   ]);
 }
 
-Rule<Html> writeSitemap(SitemapInfo info) => create((dependencies) async* {
+Rule<Markup> writeSitemap(SitemapInfo info) => create((dependencies) async* {
       final prefix = dependencies.root / 'output';
       final pages = await Glob(prefix / '**.html')
           .list()
@@ -60,10 +60,10 @@ Rule<Html> writeSitemap(SitemapInfo info) => create((dependencies) async* {
         path: sitemap,
         data: xml([
           'urlset'(
-            attributes: {
+            attrs: {
               'xmlns': 'http://www.sitemaps.org/schemas/sitemap/0.9',
             },
-            children: pages.map((page) => _url(info, page)),
+            pages.map((page) => _url(info, page)),
           )
         ]),
       );

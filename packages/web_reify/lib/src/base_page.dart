@@ -1,15 +1,16 @@
+import 'package:brackets/brackets.dart';
 import 'package:pure/pure.dart';
 import 'package:reify/reify.dart';
 import 'package:web_reify/src/html.dart';
 
-Tag _property(String prefix, String key, String content) => meta({
+MarkupNode _property(String prefix, String key, String content) => meta({
       'property': '$prefix:$key',
       'content': content,
     });
 
-Tag link(Attributes attributes) => 'link'(
-      attributes: attributes,
-      children: null,
+MarkupNode link(Attributes attributes) => 'link'(
+      null,
+      attrs: attributes,
     );
 
 typedef PageInfo = ({
@@ -35,10 +36,10 @@ typedef PageMeta = ({
 typedef PageData = ({
   PageInfo info,
   PageMeta meta,
-  Html head,
+  Markup head,
 });
 
-Tag _head(PageData data) {
+MarkupNode _head(PageData data) {
   final (:info, meta: pageMeta, :head) = data;
   final fullSite = info.fullSite;
   final accentColor = info.accentColor;
@@ -49,9 +50,9 @@ Tag _head(PageData data) {
   final title = pageMeta.title;
   final url = fullSite / pageMeta.urlSegments.join('/');
 
-  return 'head'(attributes: {
+  return 'head'(attrs: {
     'prefix': 'og: http://ogp.me/ns# article: http://ogp.me/ns/$type#',
-  }, children: [
+  }, [
     meta({
       'charset': 'UTF-8',
     }),
@@ -59,8 +60,8 @@ Tag _head(PageData data) {
       'name': 'viewport',
       'content': 'width=device-width, initial-scale=1.0',
     }),
-    'title'(children: [
-      title.text,
+    'title'([
+      title.$,
     ]),
     meta({
       'name': 'description',
@@ -113,17 +114,18 @@ Tag _head(PageData data) {
   ]);
 }
 
-Html basePage(
+Markup basePage(
   PageData data, {
-  Html children = const [],
+  Markup children = const [],
   Attributes attrs = const {},
 }) =>
     [
-      '<!DOCTYPE html>'.text,
-      'html'(attributes: {
-        'lang': 'en'
-      }, children: [
-        _head(data),
-        'body'(children: children, attributes: attrs),
-      ]),
+      '<!DOCTYPE html>'.$,
+      'html'(
+        attrs: {'lang': 'en'},
+        [
+          _head(data),
+          'body'(children, attrs: attrs),
+        ],
+      ),
     ];

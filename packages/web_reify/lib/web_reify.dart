@@ -6,7 +6,6 @@ export 'src/base_page.dart';
 export 'src/copy_static.dart';
 export 'src/create_site.dart';
 export 'src/document_contents.dart';
-export 'src/html.dart';
 export 'src/markdown.dart';
 export 'src/robots.dart';
 export 'src/rss.dart';

@@ -1,11 +1,12 @@
+import 'package:brackets/brackets.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:web_reify/src/html.dart';
 import 'package:web_reify/src/markdown.dart';
 
-typedef _State = (Tag, List<md.Element>);
+typedef _State = (MarkupNode, List<md.Element>);
 
-Tag _entry(String text, String id) =>
-    'li'(children: [textLink(text: text, href: '#$id')]);
+MarkupNode _entry(String text, String id) =>
+    'li'([textLink(text: text, href: '#$id')]);
 
 _State _processRoot(
   List<md.Element> elements,
@@ -14,19 +15,29 @@ _State _processRoot(
     _process(
       elements,
       currentLevel,
-      'ul'(),
+      'ul'(const []) as MarkupTag,
     );
+
+extension on MarkupTag {
+  MarkupTag addChild(MarkupNode child) => name(
+        attrs: attributes,
+        [
+          ...?children,
+          child,
+        ],
+      ) as MarkupTag;
+}
 
 _State _process(
   List<md.Element> elements,
   int currentLevel,
-  Tag currentNode,
+  MarkupTag currentNode,
 ) {
   late final terminate = (currentNode, elements);
 
   return switch (elements) {
     [final nextElement, ...final rest] => () {
-        _State recurse(List<md.Element> rest, Tag node) => _process(
+        _State recurse(List<md.Element> rest, MarkupTag node) => _process(
               rest,
               currentLevel,
               node,
@@ -76,7 +87,7 @@ typedef DocumentContentData = ({
   int initialLevel,
 });
 
-HtmlNode documentContents(DocumentContentData data) {
+MarkupNode documentContents(DocumentContentData data) {
   final elements = data.nodes.whereType<md.Element>().toList();
   final (indexElement, _) = _processRoot(elements, data.initialLevel);
 

@@ -1,14 +1,14 @@
 name: reify
-description: A starting point for Dart libraries or applications.
+description: Declarative data processing for Dart.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/purplenoodlesoop/reify/tree/master/packages/reify
 
 environment:
-  sdk: ^3.3.4
+  sdk: ^3.3.0
 
 dependencies:
   args: ^2.5.0
-  vm_service: 14.0.0
+  vm_service: ^14.3.1
   watcher: ^1.1.0
   stream_transform: ^2.1.0
   mark: ^0.3.0

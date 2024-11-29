@@ -1,23 +1,21 @@
-publish_to: none
-
 name: web_reify
-description: A starting point for Dart libraries or applications.
+description: Static site generator for Dart, powered by `reify`
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/purplenoodlesoop/reify/tree/master/packages/web_reify
 
 environment:
   sdk: ^3.3.0
 
-# Add regular dependencies here.
 dependencies:
-  reify:
-    git:
-      url: https://github.com/purplenoodlesoop/reify.git
-      path: packages/reify
   markdown: ^7.2.2
+  brackets: ^1.0.0
+  reify: ^1.0.0
   yaml: ^3.1.2
   intl: ^0.19.0
   path: ^1.9.0
+  pure: ^0.2.0
+  glob: ^2.1.2
+  stream_transform: ^2.1.0
 
 dev_dependencies:
   purple_lints: ^0.4.0

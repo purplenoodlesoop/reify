@@ -1,7 +1,7 @@
+import 'package:brackets/brackets.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as p;
 import 'package:reify/reify.dart';
-import 'package:web_reify/src/html.dart';
 import 'package:web_reify/src/xml.dart';
 
 typedef Author = ({
@@ -22,7 +22,7 @@ typedef RssItem = ({
 
 final _formatDate = DateFormat('E, dd MMM yyyy HH:mm:ss').format;
 
-Tag _item(Author author, RssItem item) {
+MarkupNode _item(Author author, RssItem item) {
   final link = p.join(author.fullSite, item.link);
 
   return keyValue('item', [
@@ -42,7 +42,7 @@ typedef RssData = ({
   Iterable<RssItem> items,
 });
 
-Item<Html> rss(RssData data) {
+Item<Markup> rss(RssData data) {
   final author = data.author;
   final fullSite = author.fullSite;
   final items = data.items.take(20).toList().map(
@@ -52,13 +52,13 @@ Item<Html> rss(RssData data) {
   return (
     path: 'rss.xml',
     data: xml([
-      'rss'(attributes: {
+      'rss'(attrs: {
         'version': '2.0',
         'xmlns:content': 'http://purl.org/rss/1.0/modules/content/',
         'xmlns:atom': 'http://www.w3.org/2005/Atom',
-      }, children: [
+      }, [
         'channel'(
-          children: [
+          [
             ...pairs([
               ('generator', 'Reify'),
               ('language', 'en'),
@@ -69,8 +69,8 @@ Item<Html> rss(RssData data) {
               ('ttl', 60.toString()),
             ]),
             'atom:link'(
-              children: null,
-              attributes: {
+              null,
+              attrs: {
                 'href': fullSite / 'rss.xml',
                 'rel': 'self',
                 'type': 'application/rss+xml',

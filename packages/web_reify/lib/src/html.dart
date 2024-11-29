@@ -1,56 +1,10 @@
+import 'package:brackets/brackets.dart';
 import 'package:markdown/markdown.dart' as md;
 
-sealed class HtmlNode {
-  factory HtmlNode.raw(List<md.Node> nodes) => TextNode(md.renderToHtml(nodes));
-}
+MarkupNode raw(List<md.Node> nodes) => MarkupText(md.renderToHtml(nodes));
 
-typedef Html = Iterable<HtmlNode>;
-
-typedef Attributes = Map<String, String?>;
-
-final class Tag implements HtmlNode {
-  final String name;
-  final Attributes attributes;
-  final Html? children;
-
-  const Tag(
-    this.name, {
-    this.attributes = const {},
-    this.children = const [],
-  });
-
-  Tag addChild(HtmlNode child) => Tag(
-        name,
-        attributes: attributes,
-        children: [
-          ...?children,
-          child,
-        ],
-      );
-}
-
-extension StringTag on String {
-  Tag call({
-    Attributes attributes = const {},
-    Html? children = const [],
-  }) =>
-      Tag(
-        this,
-        attributes: attributes,
-        children: children,
-      );
-
-  TextNode get text => TextNode(this);
-}
-
-final class TextNode implements HtmlNode {
-  final String text;
-
-  const TextNode(this.text);
-}
-
-md.Node htmlToMarkdownHtmlNode(HtmlNode node) => switch (node) {
-      Tag() => md.Element(
+md.Node htmlToMarkdownHtmlNode(MarkupNode node) => switch (node) {
+      MarkupTag() => md.Element(
           node.name,
           node.children?.map(htmlToMarkdownHtmlNode).toList(),
         )..attributes.addAll(
@@ -58,88 +12,40 @@ md.Node htmlToMarkdownHtmlNode(HtmlNode node) => switch (node) {
               (key, value) => MapEntry(key, value ?? ''),
             ),
           ),
-      TextNode() => md.Text(node.text),
+      MarkupText() => md.Text(node.text),
     };
-
-String renderHtml(Html html) {
-  Iterable<String> renderNode(HtmlNode node) sync* {
-    switch (node) {
-      case TextNode():
-        yield node.text;
-      case Tag(:final name, :final children):
-        yield '<';
-        yield node.name;
-        for (final entry in node.attributes.entries) {
-          final key = entry.key;
-          final value = entry.value;
-          if (value != null) {
-            yield ' ';
-            yield key;
-            yield '="';
-            yield value;
-            yield '"';
-          } else {
-            yield ' ';
-            yield key;
-          }
-        }
-        if (children != null) {
-          yield '>';
-          yield* children.expand(renderNode);
-          yield '</';
-          yield name;
-          yield '>';
-        } else {
-          yield '/>';
-        }
-    }
-  }
-
-  final buffer = StringBuffer()..writeAll(html.expand(renderNode));
-
-  return buffer.toString();
-}
 
 Attributes hrefAttr(String href) => {'href': href};
 
-Tag textLink({
+MarkupNode textLink({
   required String text,
   required String href,
 }) =>
     'a'(
-      children: [text.text],
-      attributes: hrefAttr(href),
+      [text.$],
+      attrs: hrefAttr(href),
     );
 
-Tag stylesheet({required String href}) => 'link'(
-      attributes: {
+MarkupNode stylesheet({required String href}) => 'link'(
+      null,
+      attrs: {
         'rel': 'stylesheet',
         ...hrefAttr('$href.css'),
       },
-      children: null,
     );
 
-Tag script({required String src}) => 'script'(
-      attributes: {
+MarkupNode script({required String src}) => 'script'(
+      const [],
+      attrs: {
         'src': '$src.js',
       },
     );
 
-Tag h(int level, Html children) => 'h$level'(
-      children: children,
+MarkupNode h(int level, Markup children) => 'h$level'(
+      children,
     );
 
-Tag meta(Attributes attributes) => 'meta'(
-      attributes: attributes,
-      children: null,
+MarkupNode meta(Attributes attributes) => 'meta'(
+      null,
+      attrs: attributes,
     );
-
-Tag pair(String key, String value) => Tag(
-      key,
-      children: [
-        value.text,
-      ],
-    );
-
-Html pairs(List<(String, String)> entries) =>
-    entries.map((e) => pair(e.$1, e.$2));
