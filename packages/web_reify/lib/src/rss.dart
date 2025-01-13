@@ -22,18 +22,20 @@ typedef RssItem = ({
 
 final _formatDate = DateFormat('E, dd MMM yyyy HH:mm:ss').format;
 
+String _cdata(String content) => '<![CDATA[ $content ]]>';
+
 MarkupNode _item(Author author, RssItem item) {
   final link = p.join(author.fullSite, item.link);
 
   return keyValue('item', [
     ('author', '${author.email} (${author.name})'),
-    ('title', item.title),
+    ('title', _cdata(item.title)),
     ('link', link),
     ('guid', link),
     ...item.tags.map((tag) => ('category', tag)),
     ('pubDate', '${_formatDate(item.date)} GMT'),
-    ('description', item.description),
-    ('content:encoded', '<![CDATA[ ${item.content} ]]>'),
+    ('description', _cdata(item.description)),
+    ('content:encoded', _cdata(item.content)),
   ]);
 }
 
